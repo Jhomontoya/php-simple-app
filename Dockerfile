@@ -1,13 +1,20 @@
-FROM php:8.2-cli
+# Usa una imagen oficial de PHP con Apache
+FROM php:8.2-apache
 
-# Argumento para versión del build
-ARG BUILD_VERSION
-ENV BUILD_VERSION=$BUILD_VERSION
+# Instalar Git y habilitar mod_rewrite
+RUN apt-get update && \
+    apt-get install -y git && \
+    a2enmod rewrite && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copiar solo el contenido necesario
-COPY src/ /var/www/html/
+# Copiar los archivos del proyecto a /var/www/html
+COPY . /var/www/html
 
-# Servidor embebido de PHP
-CMD ["php", "-S", "0.0.0.0:80", "-t", "/var/www/html/"]
+# Cambiar permisos
+RUN chown -R www-data:www-data /var/www/html
 
+# Exponer el puerto 80
 EXPOSE 80
+
+# Iniciar Apache
+CMD ["apache2-foreground"]
