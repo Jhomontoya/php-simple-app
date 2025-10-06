@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub-creds2') // ID de credenciales en Jenkins
-        IMAGE_NAME = "jhomontoya/php-simple-app"
+        DOCKERHUB_CREDENTIALS = credentials('github-token') // ID de credenciales en Jenkins
+        IMAGE_NAME = "mi-primera-api"
         BUILD_VERSION = "1.0.${env.BUILD_ID}"
     }
 
-    stages {
+    stages {cl
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/jhomontoya/php-simple-app.git'
