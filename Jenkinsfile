@@ -1,50 +1,81 @@
-pipeline {
-    agent any
-
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('github-token') // ID de credenciales en Jenkins
-        IMAGE_NAME = "mi-primera-api"
-        BUILD_VERSION = "1.0.${env.BUILD_ID}"
-    }
-
-    stages {cl
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/jhomontoya/php-simple-app.git'
-            }d
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build --build-arg BUILD_VERSION=$BUILD_VERSION -t $IMAGE_NAME:$BUILD_VERSION .'
-            }
-        }
-
-        stage('Login to DockerHub') {
-            steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-            }
-        }
-
-        stage('Push to DockerHub') {
-            steps {
-                sh 'docker push $IMAGE_NAME:$BUILD_VERSION'
-                sh 'docker tag $IMAGE_NAME:$BUILD_VERSION $IMAGE_NAME:latest'
-                sh 'docker push $IMAGE_NAME:latest'
-            }
-        }
-    }
-
-    post {
-        always {
-            echo "=== Limpieza final ==="
-            sh 'docker system prune -f || true'
-        }
-        success {
-            echo "✅ Pipeline completado con éxito"
-        }
-        failure {
-            echo "❌ Pipeline falló"
-        }
-    }
+pipeline { 
+agent any 
+environment { 
+        DOCKERHUB_CREDENTIALS = 'dockerhub-cred'     // ID configurado en Jenkins 
+        DOCKERHUB_REPO = 'Jhomontoya/php-simple-app'  // Tu repo en DockerHub 
+    } 
+ 
+    stages { 
+        stage('Checkout') { 
+            steps { 
+                git branch: 'main', 
+                    url: 'https://github.com/Jhomontoya/php-simple-app.git' 
+            } 
+        } 
+ 
+        stage('Generate Tag') { 
+            steps { 
+                script { 
+                    // Generar tag con fecha + hora + commit corto 
+                    COMMIT_ID = sh(script: "git rev-parse --short HEAD", returnStdout: 
+true).trim() 
+                    DATE_TAG = sh(script: "date +%Y%m%d-%H%M%S", returnStdout: 
+true).trim() 
+                    IMAGE_TAG = "${DATE_TAG}-${COMMIT_ID}" 
+                    echo "Tag generado: ${IMAGE_TAG}" 
+                } 
+            } 
+        } 
+ 
+        stage('Build Docker Image') { 
+            steps { 
+                script { 
+                    sh """ 
+                    docker build -t ${DOCKERHUB_REPO}:${IMAGE_TAG} -t 
+${DOCKERHUB_REPO}:latest . 
+                    """ 
+                } 
+            } 
+        } 
+ 
+        stage('Push to DockerHub') { 
+            steps { 
+                script { 
+                    withCredentials([usernamePassword(credentialsId: 
+"${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', 
+passwordVariable: 'DOCKER_PASS')]) { 
+                        sh """ 
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password
+stdin 
+                        docker push ${DOCKERHUB_REPO}:${IMAGE_TAG} 
+                        docker push ${DOCKERHUB_REPO}:latest 
+                        docker logout 
+                        """ 
+                    } 
+                } 
+            } 
+        } 
+ 
+        stage('No Changes Check') { 
+            when { 
+                expression { 
+                    // Aquí podrías comparar hash del commit o usar algún flag 
+                    // pero para simplicidad, solo muestra el mensaje 
+                    true 
+                } 
+            } 
+            steps { 
+                echo "Validando si hay cambios (demo)..." 
+            } 
+        } 
+    } 
+ 
+    post { 
+        success { 
+            echo "     Imagen subida correctamente con tag ${IMAGE_TAG}" 
+        } 
+        failure { 
+            echo "    Error en el pipeline" 
+        } 
+    } 
 }
