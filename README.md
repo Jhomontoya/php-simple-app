@@ -3,14 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Proyecto php-simple-app</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background: #f4f4f4; }
-        h1 { color: #0078D4; }
-        .info { background: #fff; padding: 20px; margin: 20px auto; width: 60%; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .actions { margin: 30px auto; width: 60%; }
-        button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; background: #0078D4; color: white; border: none; border-radius: 5px; }
-        button:hover { background: #005a9e; }
-    </style>
 </head>
 <body>
     <h1>✅ Proyecto php-simple-app</h1>
